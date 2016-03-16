@@ -1,3 +1,3 @@
-mysql -uroot -e "create database webdb"
-mysql -uroot -e "create user 'fino'@'localhost' identified by '123'"
-mysql -uroot -e "grant all on webdb.* to 'fino'@'localhost'"
+mysql -uroot -e "create database db1"
+mysql -uroot -e "create user 'django'@'localhost' identified by '123'"
+mysql -uroot -e "grant all on webdb.* to 'django'@'localhost'"
