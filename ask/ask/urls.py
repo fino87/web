@@ -1,20 +1,10 @@
-from django.conf.urls import patterns, include, url
-
-from django.contrib import admin
-admin.autodiscover()
-
-urlpatterns = patterns('qa.views',
-    url(r'^/$', 'test'),
-    url(r'^login/$', 'test'),
-    url(r'^signup/$', 'test'),
-    url(r'^question/\d+/$', 'test'),
-    url(r'^ask/$', 'test'),
-    url(r'^popular/$', 'test'),
-    url(r'^new/$', 'test')
-)
-    # Examples:
-    # url(r'^$', 'ask.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
-
-    #url(r'^admin/', include(admin.site.urls)),
-#)
+from django.conf.urls import url
+urlpatterns=[
+	url(r'^$','qa.views.test',name='test'),
+	url(r'^login/$','qa.views.test',name='test'),
+	url(r'^signup/$','qa.views.test',name='test'),
+	url(r'^question/\d+/$','qa.views.test',name='test'),
+	url(r'^ask/','qa.views.test',name='test'),
+	url(r'^popular/$','qa.views.test',name='test'),
+	url(r'^new/$','qa.views.test',name='test')
+	]
