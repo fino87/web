@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User,UserManager
-from django.db import models
+from webdb.db import models
 
 class Local_User(User):
 	#questions=models.ManyToManyField(Question)
