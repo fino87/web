@@ -1,115 +1,90 @@
-from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.core.paginator import Paginator, EmptyPage
-from django.shortcuts import render, get_object_or_404
-from django.views.decorators.http import require_GET, require_POST
-from django.contrib import auth
-from forms import AskForm, AnswerForm, SignUpForm, LoginForm
-from models import Question, Answer
+from django.shortcuts import render, Http404, get_object_or_404, HttpResponsePermanentRedirect
+from django.http import HttpResponse
+from .models import Question, Answer
+from forms import AskForm, AnswerForm
+from django.core.paginator import Paginator
+
+
 
 
 def test(request, *args, **kwargs):
-        return HttpResponse('OK')
+    return HttpResponse('OK', status=200)
 
-@require_GET
-def newQuestions(request):
-    questions = Question.objects.order_by('-id')[:]
-    (page, paginator) = myPaginate(request, questions)
+
+def new(request):
+    last_questions = Question.objects.order_by('id')
+    limit = request.GET.get('limit', 10)
+    page = request.GET.get('page', 1)
+    paginator = Paginator(last_questions, limit)
     paginator.baseurl = '/?page='
-    return render(request, 'qa/newQuestions.html', {
-        'questions': page.object_list,
+    page = paginator.page(page)
+    return render(request, 'ask/index.html', {
+        'last_questions': page.object_list,
+        'paginator': paginator,
+        'page': page,
     })
 
-@require_GET
-def popularQuestions(request):
-    questions = Question.objects.order_by('-rating')[:]
-    (page, paginator) = myPaginate(request, questions)
+
+
+def popular(request):
+    questions = Question.objects.order_by('-rating')
+    limit = request.GET.get('limit', 10)
+    page = request.GET.get('page')
+    paginator = Paginator(questions, limit)
     paginator.baseurl = '/popular/?page='
-    return render(request, 'qa/newQuestions.html', {
+    page = paginator.page(page)
+    return render(request, 'ask/popular.html', {
         'questions': page.object_list,
+        'paginator': paginator,
+        'page': page,
     })
 
-def questionById(request, qId):
-    question = get_object_or_404(Question, id=qId)
-    answers = Answer.objects.filter(question_id=qId)
-    if request.method == "POST":
-        form = AnswerForm(request.POST)
-        if request.user is not None:
-            form._user = request.user
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(question.get_url())
-    else:
-        form = AnswerForm(initial={'question': qId})
-    return render(request, 'qa/questionById.html', {
-                  'question': question,
-                  'answers': answers[:],
-                  'form': form
-    })
 
-def myPaginate(request, qs):
-    limit = 10
-    try:
-        page = int(request.GET.get('page', 1))
-    except:
-        raise Http404
-    paginator = Paginator(qs, limit)
-    try:
-        page = paginator.page(page)
-    except EmptyPage:
-        page = paginator.page(paginator.num_pages)
-    return (page, paginator)
-
-
-def askQuestion(request):
-    if request.method == "POST":
+def ask_form(request):
+    if request.method == 'POST':
         form = AskForm(request.POST)
-        if request.user is not None:
-            form._user = request.user
         if form.is_valid():
             question = form.save()
-            return HttpResponseRedirect(question.get_url())
+            url = question.get_url()
+            return HttpResponsePermanentRedirect(url)
     else:
         form = AskForm()
-    return render(request, "qa/askNewQuestion.html", {
-        "form": form
+    return render(request, 'ask/ask_add.html', {
+        'form': form,
     })
 
 
-@require_POST
-def answerQuestion(request):
-    form = AnswerForm(request.POST)
-    if request.user is not None:
-        form._user = request.user
-    if form.is_valid():
-        answer = form.save()
-        return HttpResponseRedirect(answer.question.get_url())
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-
-def signUp(request):
-    if request.method == "POST":
-        form = SignUpForm(request.POST)
+def answer_form(request):
+    if request.method == 'POST':
+        form = AnswerForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            auth.login(request, user)
-            return HttpResponseRedirect("/")
+            answer = form.save()
+            url = answer.get_url()
+            return HttpResponsePermanentRedirect(url)
     else:
-        form = SignUpForm()
-    return render(request, "qa/signUp.html", {
-        "form": form
+        form = AnswerForm()
+    return render(request, 'ask/answer_form.html', {
+        'form': form,
     })
 
-def login(request):
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            auth.login(request, user)
-            return HttpResponseRedirect("/")
-    else:
-        form = LoginForm()
-    return render(request, "qa/login.html", {
-        "form": form
-})
+
+def question_detail(request, question_id):
+    question = get_object_or_404(Question, id=question_id)
+    answers = Answer.objects.filter(question=question_id)
+    if request.method is 'POST':
+        return answer_form(request)
+    form = AnswerForm()
+    context = {
+        'title': question.title,
+        'text': question.text,
+        'answers': answers,
+        'rating': question.rating,
+        'from': form,
+        }
+    return render(request, 'ask/detail.html', context)
+
+
+
 
 

@@ -1,32 +1,29 @@
-from __future__ import unicode_literals
+# -*- coding: utf-8 -*-
 
-from django.core.urlresolvers import reverse
+from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
 
 class Question(models.Model):
-    title = models.CharField(max_length=256)
-    text = models.TextField()
-    added_at = models.DateTimeField(auto_now_add=True, blank=True)
-    rating = models.IntegerField(default=0)
+    title = models.CharField(max_length=300)
+    text = models.TextField(blank=True)
+    added_at = models.DateTimeField(null=True, blank=True)
+    rating = models.FloatField(null=True, blank=True)
     author = models.ForeignKey(User, null=True)
-    likes = models.ManyToManyField(User, related_name='likes_set',)
+
     def __unicode__(self):
         return self.title
+
     def get_url(self):
-        return reverse('questionById',
-                       kwargs={'qId': self.id})
-    class Meta:
-        db_table = 'qa_question'
+        return '/question/%d/' % self.pk
+
 
 class Answer(models.Model):
     text = models.TextField()
-    added_at = models.DateTimeField(auto_now_add=True, blank=True)
-    question = models.ForeignKey(Question)
+    added_at = models.DateTimeField(null=True, blank=True)
+    question = models.IntegerField(Question, null=True)
     author = models.ForeignKey(User, null=True)
-    def __unicode__(self):
-        return self.text
-    class Meta:
-        db_table = 'qa_answer'
+
+    def get_url(self):
+        return '/question/%d/' % self.question
